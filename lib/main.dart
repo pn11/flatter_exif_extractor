@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:exif/exif.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,6 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (image == null) return;
 
       final imageTemp = File(image.path);
+      await extractExif(imageTemp);
 
       setState(() => this.image = imageTemp);
     } on PlatformException catch (e) {
@@ -51,13 +53,44 @@ class _MyHomePageState extends State<MyHomePage> {
       final image = await ImagePicker().pickImage(source: ImageSource.camera);
       // 画像がnullの場合戻る
       if (image == null) return;
-
+      
       final imageTemp = File(image.path);
+      await extractExif(imageTemp);
 
       setState(() => this.image = imageTemp);
     } on PlatformException catch (e) {
       print('Failed to pick image: $e');
     }
+  }
+
+  Future extractExif(image) async {
+    final tags = await readExifFromBytes(await image.readAsBytes());
+
+
+    if (tags.isEmpty) {
+      print("No EXIF information found");
+      return;
+    }
+
+    for (final entry in tags.entries) {
+      print("${entry.key}: ${entry.value}");
+    }
+    String dateTime = tags["Image DateTime"].toString();
+    print(dateTime);
+    if (tags.containsKey('EXIF ApertureValue')) {
+      print(tags["EXIF ApertureValue"].toString());
+    }
+    print(tags["EXIF ShutterSpeedValue"].toString());
+    print(tags["EXIF FNumber"].toString());
+    print(tags["EXIF ISOSpeedRatings: 100"].toString());
+    print(tags["EXIF FocalLength: 33/10"].toString());
+    print(tags["EXIF ExposureTime"].toString());
+    print(tags[""].toString());
+    print(tags[""].toString());
+    print(tags[""].toString());
+    print(tags[""].toString());
+    print(tags[""].toString());
+    
   }
 
   @override
